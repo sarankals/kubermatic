@@ -55,6 +55,8 @@ func Ensure(s *state.State) error {
 		err = ensurePacket(s)
 	case kubeoneapi.CloudProviderNameOpenStack:
 		err = ensureOpenStack(s)
+	case kubeoneapi.CloudProviderNameVSphere:
+		err = ensurevSphere(s)
 	default:
 		s.Logger.Infof("External CCM for %q not yet supported, skipping", s.Cluster.CloudProvider.Name)
 		return nil
