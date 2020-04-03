@@ -45,6 +45,13 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
+resource "vsphere_folder" "folder" {
+  count         = var.folder == "" ? 0 : 1
+  path          = var.folder
+  type          = "vm"
+  datacenter_id = data.vsphere_datacenter.dc.id
+}
+
 resource "vsphere_virtual_machine" "control_plane" {
   count            = 3
   name             = "${var.cluster_name}-cp-${count.index + 1}"
@@ -54,6 +61,7 @@ resource "vsphere_virtual_machine" "control_plane" {
   memory           = var.control_plane_memory
   guest_id         = data.vsphere_virtual_machine.template.guest_id
   scsi_type        = data.vsphere_virtual_machine.template.scsi_type
+  folder           = var.folder
 
   network_interface {
     network_id   = data.vsphere_network.network.id
@@ -96,9 +104,10 @@ resource "vsphere_virtual_machine" "lb" {
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   num_cpus         = 1
-  memory           = 1024
+  memory           = 512
   guest_id         = data.vsphere_virtual_machine.template.guest_id
   scsi_type        = data.vsphere_virtual_machine.template.scsi_type
+  folder           = var.folder
 
   network_interface {
     network_id   = data.vsphere_network.network.id

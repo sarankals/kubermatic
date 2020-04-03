@@ -29,8 +29,7 @@ output "kubeone_hosts" {
     control_plane = {
       cluster_name         = var.cluster_name
       cloud_provider       = "vsphere"
-      private_address      = []
-      public_address       = vsphere_virtual_machine.control_plane.*.default_ip_address
+      private_address      = vsphere_virtual_machine.control_plane.*.default_ip_address
       ssh_agent_socket     = var.ssh_agent_socket
       ssh_port             = var.ssh_port
       ssh_private_key_file = var.ssh_private_key_file
@@ -60,10 +59,12 @@ output "kubeone_workers" {
           allowInsecure = false
           cluster       = var.compute_cluster_name
           cpus          = 2
-          datacenter    = var.dc_name
+          datacenter    = data.vsphere_datacenter.dc.name
           # Either Datastore or DatastoreCluster have to be provided.
           datastore        = var.datastore_name
           datastoreCluster = var.datastore_cluster_name
+          datastore        = data.vsphere_datastore.datastore.name
+          folder           = var.folder
           # Optional: Resize the root disk to this size. Must be bigger than the existing size
           # Default is to leave the disk at the same size as the template
           diskSizeGB     = var.worker_disk

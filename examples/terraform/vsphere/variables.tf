@@ -91,17 +91,21 @@ variable "disk_size" {
 }
 
 variable "control_plane_memory" {
-  default = 2048
+  default     = 2048
   description = "memory size of each control plane node in MB"
 }
 
 variable "worker_memory" {
-  default = 2048
+  default     = 2048
   description = "memory size of each worker node in MB"
 }
 
 variable "worker_disk" {
-  default = 10
+  default     = 10
   description = "disk size of each worker node in GB"
 }
 
+variable "folder" {
+  default     = ""
+  description = "the path to the folder to put this virtual machine in, relative to the datacenter that the resource pool is in"
+}
