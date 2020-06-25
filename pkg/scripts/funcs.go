@@ -108,3 +108,55 @@ func yumDockerFunc(v string) (string, error) {
 	// return default
 	return "docker-ce-19.03.9-3.el7 docker-ce-cli-19.03.9-3.el7", nil
 }
+
+func cniPkgVersionFunc(kubernetesVersion string) (string, error) {
+	s, err := semver.NewVersion(kubernetesVersion)
+	if err != nil {
+		return "", err
+	}
+
+	lessThen1134, _ := semver.NewConstraint(">= 1.13.0, <= 1.13.4")
+	lessThen11611, _ := semver.NewConstraint("< 1.16.11, >= 1.16.0")
+	lessThen1177, _ := semver.NewConstraint("< 1.17.7, >= 1.17.0")
+	lessThen1184, _ := semver.NewConstraint("< 1.18.4, >= 1.18.0")
+
+	// Versions 1.13.0-1.13.4 uses 0.6.0, so it's safe to return 0.6.0
+	// if >= 1.13.0, <= 1.13.4 constraint check successes.
+	// Versions >= 1.16.11, 1.17.7, and 1.18.4 use 0.8.6,
+	// while older versions use 0.7.5.
+	switch {
+	case lessThen1134.Check(s):
+		return "0.6.0", nil
+	case lessThen11611.Check(s), lessThen1177.Check(s), lessThen1184.Check(s):
+		return "0.7.5", nil
+	}
+
+	// return default
+	return "0.8.6", nil
+}
+
+func cniURLFunc(kubernetesVersion string) (string, error) {
+	s, err := semver.NewVersion(kubernetesVersion)
+	if err != nil {
+		return "", err
+	}
+
+	lessThen1134, _ := semver.NewConstraint(">= 1.13.0, <= 1.13.4")
+	lessThen11611, _ := semver.NewConstraint("< 1.16.11, >= 1.16.0")
+	lessThen1177, _ := semver.NewConstraint("< 1.17.7, >= 1.17.0")
+	lessThen1184, _ := semver.NewConstraint("< 1.18.4, >= 1.18.0")
+
+	// Versions 1.13.0-1.13.4 uses 0.6.0, so it's safe to return 0.6.0
+	// if >= 1.13.0, <= 1.13.4 constraint check successes.
+	// Versions >= 1.16.11, 1.17.7, and 1.18.4 use 0.8.6,
+	// while older versions use 0.7.5.
+	switch {
+	case lessThen1134.Check(s):
+		return "https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-${HOST_ARCH}-v0.6.0.tgz", nil
+	case lessThen11611.Check(s), lessThen1177.Check(s), lessThen1184.Check(s):
+		return "https://github.com/containernetworking/plugins/releases/download/v0.7.5/cni-plugins-${HOST_ARCH}-v0.7.5.tgz", nil
+	}
+
+	// return default
+	return "https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-${HOST_ARCH}-v0.8.6.tgz", nil
+}

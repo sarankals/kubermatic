@@ -64,6 +64,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install --option "Dpkg::Options::=--
 	rsync
 
 kube_ver=$(apt-cache madison kubelet | grep "{{ .KUBERNETES_VERSION }}" | head -1 | awk '{print $3}')
+cni_ver=$(apt-cache madison kubernetes-cni | grep "{{ cniPkgVersion .KUBERNETES_VERSION }}" | head -1 | awk '{print $3}')
 
 {{- if or .FORCE .UPGRADE }}
 sudo apt-mark unhold docker-ce kubelet kubeadm kubectl kubernetes-cni
@@ -85,9 +86,10 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install \
 {{- if .KUBECTL }}
 	kubectl=${kube_ver} \
 {{- end }}
+	kubernetes-cni=${cni_ver} \
 	{{ aptDocker .KUBERNETES_VERSION }}
 
-sudo apt-mark hold docker-ce docker-ce-cli kubelet kubeadm kubectl
+sudo apt-mark hold docker-ce docker-ce-cli kubelet kubeadm kubectl kubernetes-cni
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now docker
@@ -151,8 +153,9 @@ sudo yum install -y \
 {{- if .KUBECTL }}
 	kubectl-{{ .KUBERNETES_VERSION }} \
 {{- end }}
+	kubernetes-cni-{{ cniPkgVersion .KUBERNETES_VERSION }} \
 	{{ yumDocker .KUBERNETES_VERSION }}
-sudo yum versionlock add docker-ce docker-ce-cli kubelet kubeadm kubectl
+sudo yum versionlock add docker-ce docker-ce-cli kubelet kubeadm kubectl kubernetes-cni
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now docker
@@ -170,7 +173,7 @@ source /etc/kubeone/proxy-env
 sudo systemctl restart docker
 
 sudo mkdir -p /opt/cni/bin /etc/kubernetes/pki /etc/kubernetes/manifests
-curl -L "https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-${HOST_ARCH}-v0.8.6.tgz" |
+curl -L "{{ cniURL .KUBERNETES_VERSION }}" |
 	sudo tar -C /opt/cni/bin -xz
 
 RELEASE="v{{ .KUBERNETES_VERSION }}"
@@ -252,7 +255,7 @@ sudo rm /etc/systemd/system/kubelet.service /etc/systemd/system/kubelet.service.
 source /etc/kubeone/proxy-env
 
 sudo mkdir -p /opt/cni/bin
-curl -L "https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-${HOST_ARCH}-v0.8.6.tgz" |
+curl -L "{{ cniURL .KUBERNETES_VERSION }}" |
 	sudo tar -C /opt/cni/bin -xz
 
 RELEASE="v{{ .KUBERNETES_VERSION }}"
